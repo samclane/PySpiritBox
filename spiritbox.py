@@ -1,9 +1,11 @@
+import io
 from rtlsdr import RtlSdr
 from scipy import signal
+import scipy
 import numpy as np
-from scipy.io import wavfile
 import sounddevice
 import itertools as it
+import speech_recognition as sr
 
 sdr = RtlSdr()
 Fs =  2.4e6
@@ -57,24 +59,16 @@ def filter_samples(samples, bandwidth=200000, n_taps=64):
     x7 *= 10000 / np.max(np.abs(x7))
     return x7, Fs_audio
 
-def play_samples(Freq, hold_time_sec=1):
-    # from https://witestlab.poly.edu/blog/capture-and-decode-fm-radio/ 
-    print(Freq/1e6)
 
-    samples = get_samples(Freq, hold_time_sec)
-
-    # print(samples)
-    # print(samples.shape)
-    # print(np.max(samples))
-    #continue
-    
-    filtered_samples, Fs_audio = filter_samples(samples)
-    
-    #sounddevice.play(x7,Fs_audio)
-    # x7.astype("int16").tofile("wbfm-mono.raw")  #Raw file.
-    # wavfile.write('wav.wav',int(Fs_audio), x7.astype("int16"))
-    # print('playing...')
-    sounddevice.play(filtered_samples.astype("int16"), Fs_audio)
+def speech_recognition(samples, Fs_audio):
+    byte_io = io.BytesIO(bytes())
+    scipy.io.wavfile.write(byte_io, int(Fs_audio), samples.astype("int16"))
+    result_bytes = byte_io.read()
+    audio_data = sr.AudioData(result_bytes, int(Fs_audio), 2)
+    r = sr.Recognizer()
+    # text = r.recognize_google(audio_data)
+    text = r.recognize_sphinx(audio_data)
+    print("You said: {}".format(text))
 
 
 if __name__ == '__main__':
@@ -83,7 +77,20 @@ if __name__ == '__main__':
     step_freq = 0.2e6
     # endless sweep frequencies
     try:
-        for freq in it.cycle(np.arange(start_freq, end_freq, step_freq)):
-            play_samples(freq, 0.5)
+        for Freq in it.cycle(np.arange(start_freq, end_freq, step_freq)):
+            # from https://witestlab.poly.edu/blog/capture-and-decode-fm-radio/ 
+            print(Freq/1e6)
+
+            samples = get_samples(Freq, 1)
+            
+            filtered_samples, Fs_audio = filter_samples(samples)
+
+            speech_recognition(filtered_samples, Fs_audio)
+            
+            #sounddevice.play(x7,Fs_audio)
+            # x7.astype("int16").tofile("wbfm-mono.raw")  #Raw file.
+            # wavfile.write('wav.wav',int(Fs_audio), x7.astype("int16"))
+            # print('playing...')
+            sounddevice.play(filtered_samples.astype("int16"), Fs_audio)
     finally:
         sdr.close()
