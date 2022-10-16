@@ -59,6 +59,7 @@ def filter_samples(samples, bandwidth=200000, n_taps=64):
 
 def play_samples(Freq, hold_time_sec=1):
     # from https://witestlab.poly.edu/blog/capture-and-decode-fm-radio/ 
+    print(Freq/1e6)
 
     samples = get_samples(Freq, hold_time_sec)
 
@@ -77,12 +78,12 @@ def play_samples(Freq, hold_time_sec=1):
 
 
 if __name__ == '__main__':
-    start_freq = 90.1e6
-    end_freq = 92.1e6
-    step_freq = 0.01e6
-    # endless loop frequencies
+    start_freq = 88e6
+    end_freq = 108e6
+    step_freq = 0.2e6
+    # endless sweep frequencies
     try:
         for freq in it.cycle(np.arange(start_freq, end_freq, step_freq)):
-            play_samples(freq, 0.1)
+            play_samples(freq, 0.5)
     finally:
         sdr.close()
