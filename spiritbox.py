@@ -33,11 +33,10 @@ def filter_samples(samples, bandwidth=200000, n_taps=64):
     dec_rate = int(Fs / bandwidth)
     x4 = x3[0::dec_rate]
     Fs_y = Fs/dec_rate
-    f_bw = 200000 
+    f_bw = bandwidth 
     dec_rate = int(Fs / f_bw)  
     x4 = signal.decimate(x2, dec_rate) 
     # Calculate the new sampling rate
-    # Fs_y = Fs/dec_rate  
 
     
     y5 = x4[1:] * np.conj(x4[:-1])
@@ -55,7 +54,6 @@ def filter_samples(samples, bandwidth=200000, n_taps=64):
     Fs_audio = Fs_y / dec_audio
     x7 = signal.decimate(x6, dec_audio) 
     
-    # sounddevice.play(x7,Fs_audio) 
     x7 *= 10000 / np.max(np.abs(x7))
     return x7, Fs_audio
 
@@ -66,9 +64,9 @@ def speech_recognition(samples, Fs_audio):
     result_bytes = byte_io.read()
     audio_data = sr.AudioData(result_bytes, int(Fs_audio), 2)
     r = sr.Recognizer()
-    # text = r.recognize_google(audio_data)
     text = r.recognize_sphinx(audio_data)
-    print("You said: {}".format(text))
+    if text:
+        print("You said: {}".format(text))
 
 
 if __name__ == '__main__':
@@ -87,10 +85,6 @@ if __name__ == '__main__':
 
             speech_recognition(filtered_samples, Fs_audio)
             
-            #sounddevice.play(x7,Fs_audio)
-            # x7.astype("int16").tofile("wbfm-mono.raw")  #Raw file.
-            # wavfile.write('wav.wav',int(Fs_audio), x7.astype("int16"))
-            # print('playing...')
             sounddevice.play(filtered_samples.astype("int16"), Fs_audio)
     finally:
         sdr.close()
