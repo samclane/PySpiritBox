@@ -1,5 +1,8 @@
 # PySpiritBox
 
+<!-- screenshot -->
+![](screenshot.png)
+
 ## Requirements
 - Python 3.6+
 - librtlsdr installed

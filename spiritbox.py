@@ -13,11 +13,40 @@ class SpiritBox:
         self.Fs =  2.4e6
         self.F_offset = 250000
         
-        self.sdr.sample_rate = self.Fs
         self.sdr.gain = 'auto'
 
         self._looping = False
+        self._sample_buffer = []
         self._text_buffer = ""
+
+    @property
+    def looping(self):
+        return self._looping
+
+    @property
+    def text_buffer(self):
+        b = self._text_buffer
+        self._text_buffer = ""
+        return b
+
+    @property
+    def sample_buffer(self):
+        b = self._sample_buffer
+        self._sample_buffer = []
+        return b
+
+    @property
+    def Fs(self):
+        return self._Fs
+
+    @Fs.setter
+    def Fs(self, value):
+        self._Fs = value
+        self.sdr.sample_rate = value
+
+    @property
+    def current_freq(self):
+        return self.sdr.center_freq
 
     def get_samples(self, Freq, hold_time_sec):
         # tune device to desired frequency
@@ -71,7 +100,6 @@ class SpiritBox:
         text = r.recognize_sphinx(audio_data)
         if text:
             self._text_buffer += text
-            print("You said: {}".format(text))
 
     def run(self, start_freq, end_freq, step_freq, hold_time_sec):
         self._looping = True
@@ -82,6 +110,8 @@ class SpiritBox:
                 samples = self.get_samples(Freq, hold_time_sec)
                 
                 filtered_samples, Fs_audio = self.filter_samples(samples)
+
+                self._sample_buffer.extend(filtered_samples)
 
                 self.speech_recognition(filtered_samples, Fs_audio)
                 
@@ -95,15 +125,9 @@ class SpiritBox:
     def stop(self):
         self._looping = False
 
-    @property
-    def looping(self):
-        return self._looping
-
-    @property
-    def text_buffer(self):
-        b = self._text_buffer
-        self._text_buffer = ""
-        return b
+    def close(self):
+        self._looping = False
+        self.sdr.close()
 
 if __name__ == '__main__':
     sb = SpiritBox()
