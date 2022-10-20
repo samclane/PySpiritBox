@@ -37,11 +37,10 @@ class SpiritBox:
 
     @property
     def Fs(self):
-        return self._Fs
+        return self.sdr.sample_rate
 
     @Fs.setter
     def Fs(self, value):
-        self._Fs = value
         self.sdr.sample_rate = value
 
     @property

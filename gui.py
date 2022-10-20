@@ -19,10 +19,13 @@ def stop_spiritbox():
 
 dpg.create_context()
 
-dpg.create_viewport()
+dpg.create_viewport(title="SpiritBox", width=800, height=600, resizable=True)
 dpg.setup_dearpygui()
 
-with dpg.window(label="Spirit Box", width=500, height=500, tag="main_window", on_close=stop_spiritbox) as main_window:
+with dpg.window(label="Spirit Box", width=-1, height=-1, tag="main_window", on_close=stop_spiritbox) as main_window:
+    # Flavor text
+    dpg.add_text("The spirits greet you", parent=main_window)
+    
     # Inputs
     dpg.add_button(label="Start", callback=start_spiritbox)
     dpg.add_button(label="Stop", callback=stop_spiritbox)
@@ -49,6 +52,7 @@ with dpg.theme() as theme:
 dpg.bind_item_theme(main_window, theme)
 
 dpg.show_viewport()
+dpg.set_primary_window(main_window, True)
 while dpg.is_dearpygui_running():
     dpg.set_value("current_freq", f"Current Frequency: {sb.current_freq/1e6:.2f} MHz")
     if tbuf := sb.text_buffer:
